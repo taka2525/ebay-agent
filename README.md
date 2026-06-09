@@ -28,5 +28,20 @@ python3 src/main.py
 出力列は以下です。
 
 ```text
-商品名,仕入価格,販売価格,利益,利益率
+商品名,仕入価格,販売価格,利益,利益率,スコア
 ```
+
+## eBay API設定
+
+将来的にeBay APIから商品データを取得するため、`config/settings.json` に以下の設定を用意しています。
+
+```json
+{
+  "ebay_app_id": "",
+  "ebay_environment": "sandbox"
+}
+```
+
+`ebay_app_id` にはeBay Developer Programで取得したApp IDを入力します。
+
+`ebay_environment` は検証用の場合は `sandbox`、本番用の場合は `production` を指定します。
