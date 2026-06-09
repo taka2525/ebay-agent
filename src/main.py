@@ -1,5 +1,11 @@
 import csv
+import json
 from pathlib import Path
+
+
+def load_settings(settings_path):
+    with settings_path.open("r", encoding="utf-8") as file:
+        return json.load(file)
 
 
 def load_products(csv_path):
@@ -69,9 +75,14 @@ def print_products(products):
 def main():
     project_root = Path(__file__).resolve().parent.parent
     csv_path = project_root / "data" / "products.csv"
+    settings_path = project_root / "config" / "settings.json"
+    settings = load_settings(settings_path)
     products = load_products(csv_path)
     filtered_products = [
-        product for product in products if product["利益率"] >= 70
+        product
+        for product in products
+        if product["利益率"] >= settings["min_profit_rate"]
+        and product["利益"] >= settings["min_profit"]
     ]
     sorted_products = sorted(
         filtered_products,
