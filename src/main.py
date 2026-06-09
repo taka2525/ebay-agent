@@ -2,7 +2,7 @@ import csv
 import json
 from pathlib import Path
 
-from ebay_fetcher import check_ebay_api_settings, generate_products_csv
+from ebay_fetcher import check_ebay_api_settings, fetch_ebay_items, save_products_csv
 
 
 def load_settings(settings_path):
@@ -15,6 +15,10 @@ def load_products(csv_path):
 
     with csv_path.open("r", encoding="utf-8", newline="") as file:
         reader = csv.DictReader(file)
+        required_fields = {"商品名", "仕入価格", "販売価格"}
+        if not required_fields.issubset(reader.fieldnames or []):
+            return products
+
         for row in reader:
             name = row["商品名"]
             purchase_price = int(row["仕入価格"])
@@ -106,10 +110,16 @@ def main():
     settings = load_settings(settings_path)
 
     if not csv_path.exists():
-        check_ebay_api_settings(settings)
-        generate_products_csv(csv_path)
+        if not check_ebay_api_settings(settings):
+            return
+        items = fetch_ebay_items(settings)
+        save_products_csv(items, csv_path)
 
     products = load_products(csv_path)
+    if not products:
+        print("利益分析用CSV形式ではありません。data/products.csv を確認してください。")
+        return
+
     filtered_products = [
         product
         for product in products

@@ -1,13 +1,13 @@
+import base64
 import csv
 import json
+import os
 from pathlib import Path
+from urllib import parse, request
 
 
-SAMPLE_PRODUCTS = [
-    {"商品名": "ゲームソフト", "仕入価格": 1200, "販売価格": 2500},
-    {"商品名": "フィギュア", "仕入価格": 3000, "販売価格": 5200},
-    {"商品名": "腕時計", "仕入価格": 4500, "販売価格": 7800},
-]
+SEARCH_KEYWORD = "motorcycle"
+SEARCH_LIMIT = 50
 
 
 def load_settings(settings_path):
@@ -15,25 +15,97 @@ def load_settings(settings_path):
         return json.load(file)
 
 
+def get_api_base_url(environment):
+    if environment == "production":
+        return "https://api.ebay.com"
+    return "https://api.sandbox.ebay.com"
+
+
 def check_ebay_api_settings(settings):
     ebay_app_id = settings["ebay_app_id"]
     ebay_environment = settings["ebay_environment"]
+    ebay_client_secret = os.environ.get("EBAY_CLIENT_SECRET")
 
     if not ebay_app_id:
         print("eBay App ID が未設定です。settings.json に入力してください")
-        return
+        return False
+
+    if not ebay_client_secret:
+        print("eBay Client Secret が未設定です。環境変数 EBAY_CLIENT_SECRET に入力してください")
+        return False
 
     print(f"eBay API設定: {ebay_environment}")
+    return True
 
 
-def generate_products_csv(csv_path):
+def get_access_token(settings):
+    ebay_app_id = settings["ebay_app_id"]
+    ebay_environment = settings["ebay_environment"]
+    ebay_client_secret = os.environ["EBAY_CLIENT_SECRET"]
+    credentials = f"{ebay_app_id}:{ebay_client_secret}".encode("utf-8")
+    encoded_credentials = base64.b64encode(credentials).decode("utf-8")
+    token_url = f"{get_api_base_url(ebay_environment)}/identity/v1/oauth2/token"
+    data = parse.urlencode(
+        {
+            "grant_type": "client_credentials",
+            "scope": "https://api.ebay.com/oauth/api_scope",
+        }
+    ).encode("utf-8")
+    token_request = request.Request(
+        token_url,
+        data=data,
+        headers={
+            "Authorization": f"Basic {encoded_credentials}",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method="POST",
+    )
+
+    with request.urlopen(token_request, timeout=30) as response:
+        token_response = json.load(response)
+
+    return token_response["access_token"]
+
+
+def fetch_ebay_items(settings):
+    ebay_environment = settings["ebay_environment"]
+    access_token = get_access_token(settings)
+    query = parse.urlencode({"q": SEARCH_KEYWORD, "limit": SEARCH_LIMIT})
+    search_url = (
+        f"{get_api_base_url(ebay_environment)}"
+        f"/buy/browse/v1/item_summary/search?{query}"
+    )
+    search_request = request.Request(
+        search_url,
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
+        },
+        method="GET",
+    )
+
+    with request.urlopen(search_request, timeout=30) as response:
+        search_response = json.load(response)
+
+    return search_response.get("itemSummaries", [])
+
+
+def save_products_csv(items, csv_path):
     csv_path.parent.mkdir(parents=True, exist_ok=True)
 
     with csv_path.open("w", encoding="utf-8", newline="") as file:
-        fieldnames = ["商品名", "仕入価格", "販売価格"]
+        fieldnames = ["title", "price", "itemWebUrl"]
         writer = csv.DictWriter(file, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
-        writer.writerows(SAMPLE_PRODUCTS)
+        for item in items:
+            price = item.get("price", {})
+            writer.writerow(
+                {
+                    "title": item.get("title", ""),
+                    "price": price.get("value", ""),
+                    "itemWebUrl": item.get("itemWebUrl", ""),
+                }
+            )
 
 
 def main():
@@ -41,9 +113,13 @@ def main():
     csv_path = project_root / "data" / "products.csv"
     settings_path = project_root / "config" / "settings.json"
     settings = load_settings(settings_path)
-    check_ebay_api_settings(settings)
-    generate_products_csv(csv_path)
-    print(f"CSVを生成しました: {csv_path}")
+
+    if not check_ebay_api_settings(settings):
+        return
+
+    items = fetch_ebay_items(settings)
+    save_products_csv(items, csv_path)
+    print(f"{len(items)}件の商品データを保存しました: {csv_path}")
 
 
 if __name__ == "__main__":

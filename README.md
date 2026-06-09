@@ -45,3 +45,11 @@ python3 src/main.py
 `ebay_app_id` にはeBay Developer Programで取得したApp IDを入力します。
 
 `ebay_environment` は検証用の場合は `sandbox`、本番用の場合は `production` を指定します。
+
+Client SecretはGitHubへ保存しないため、実行時に環境変数 `EBAY_CLIENT_SECRET` で指定します。
+
+```bash
+EBAY_CLIENT_SECRET="your_client_secret" python3 src/ebay_fetcher.py
+```
+
+`src/ebay_fetcher.py` はeBay Browse APIで `motorcycle` を検索し、最大50件を `data/products.csv` に保存します。
