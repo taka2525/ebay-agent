@@ -2,6 +2,8 @@ import csv
 import json
 from pathlib import Path
 
+from ebay_fetcher import generate_products_csv
+
 
 def load_settings(settings_path):
     with settings_path.open("r", encoding="utf-8") as file:
@@ -76,6 +78,10 @@ def main():
     project_root = Path(__file__).resolve().parent.parent
     csv_path = project_root / "data" / "products.csv"
     settings_path = project_root / "config" / "settings.json"
+
+    if not csv_path.exists():
+        generate_products_csv(csv_path)
+
     settings = load_settings(settings_path)
     products = load_products(csv_path)
     filtered_products = [
