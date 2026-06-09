@@ -1,0 +1,12 @@
+# Item Type Report
+
+分析対象件数: 800件
+
+- T-Shirt: 37件
+- Cap: 9件
+- Hat: 17件
+- Hoodie: 18件
+- Jacket: 149件
+- Gloves: 63件
+- Boots: 74件
+- Pants: 32件

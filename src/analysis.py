@@ -4,6 +4,18 @@ from pathlib import Path
 import re
 
 
+ITEM_TYPE_PATTERNS = {
+    "T-Shirt": r"\bt[-\s]?shirts?\b",
+    "Cap": r"\bcaps?\b",
+    "Hat": r"\bhats?\b",
+    "Hoodie": r"\bhoodies?\b",
+    "Jacket": r"\bjackets?\b",
+    "Gloves": r"\bgloves?\b",
+    "Boots": r"\bboots?\b",
+    "Pants": r"\bpants?\b",
+}
+
+
 def load_products(csv_path):
     with csv_path.open("r", encoding="utf-8", newline="") as file:
         return list(csv.DictReader(file))
@@ -173,6 +185,23 @@ def write_market_report(products, report_path, search_keywords):
             file.write(f"{rank}. {title}: {count}件\n")
 
 
+def write_item_type_report(products, report_path):
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    item_type_counts = Counter()
+
+    for product in products:
+        title = product.get("title", "")
+        for item_type, pattern in ITEM_TYPE_PATTERNS.items():
+            if re.search(pattern, title, re.IGNORECASE):
+                item_type_counts[item_type] += 1
+
+    with report_path.open("w", encoding="utf-8") as file:
+        file.write("# Item Type Report\n\n")
+        file.write(f"分析対象件数: {len(products)}件\n\n")
+        for item_type in ITEM_TYPE_PATTERNS:
+            file.write(f"- {item_type}: {item_type_counts[item_type]}件\n")
+
+
 def group_products_by_keyword(products):
     grouped_products = {}
     for product in products:
@@ -186,12 +215,14 @@ def main():
     products_path = project_root / "data" / "products.csv"
     settings_path = project_root / "config" / "settings.json"
     market_report_path = project_root / "reports" / "market_report.txt"
+    item_type_report_path = project_root / "reports" / "item_type_report.txt"
 
     products = load_products(products_path)
     settings = load_settings(settings_path)
     search_keywords = settings.get("search_keywords", [])
     grouped_products = group_products_by_keyword(products)
     write_market_report(products, market_report_path, search_keywords)
+    write_item_type_report(products, item_type_report_path)
 
     for keyword, keyword_products in grouped_products.items():
         keyword_slug = slugify_keyword(keyword)
@@ -207,6 +238,7 @@ def main():
         print(f"{keyword}: 上位セラー一覧を保存しました: {top_sellers_path}")
 
     print(f"市場レポートを保存しました: {market_report_path}")
+    print(f"アイテム種別レポートを保存しました: {item_type_report_path}")
 
 
 if __name__ == "__main__":
