@@ -21,6 +21,7 @@ def load_products(csv_path):
             selling_price = int(row["販売価格"])
             profit = selling_price - purchase_price
             profit_rate = profit / purchase_price * 100
+            score = profit * profit_rate
 
             products.append(
                 {
@@ -29,6 +30,7 @@ def load_products(csv_path):
                     "販売価格": selling_price,
                     "利益": profit,
                     "利益率": profit_rate,
+                    "スコア": score,
                 }
             )
 
@@ -36,7 +38,7 @@ def load_products(csv_path):
 
 
 def print_products(products):
-    headers = ["商品名", "仕入価格", "販売価格", "利益", "利益率"]
+    headers = ["商品名", "仕入価格", "販売価格", "利益", "利益率", "スコア"]
     rows = []
     for product in products:
         rows.append(
@@ -46,6 +48,7 @@ def print_products(products):
                 str(product["販売価格"]),
                 str(product["利益"]),
                 f"{product['利益率']:.1f}",
+                f"{product['スコア']:.1f}",
             ]
         )
 
@@ -76,7 +79,7 @@ def print_products(products):
 
 def save_report(products, report_path):
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    fieldnames = ["商品名", "仕入価格", "販売価格", "利益", "利益率"]
+    fieldnames = ["商品名", "仕入価格", "販売価格", "利益", "利益率", "スコア"]
 
     with report_path.open("w", encoding="utf-8", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames, lineterminator="\n")
@@ -89,6 +92,7 @@ def save_report(products, report_path):
                     "販売価格": product["販売価格"],
                     "利益": product["利益"],
                     "利益率": f"{product['利益率']:.1f}",
+                    "スコア": f"{product['スコア']:.1f}",
                 }
             )
 
@@ -112,7 +116,7 @@ def main():
     ]
     sorted_products = sorted(
         filtered_products,
-        key=lambda product: product["利益率"],
+        key=lambda product: product["スコア"],
         reverse=True,
     )
     save_report(sorted_products, report_path)
