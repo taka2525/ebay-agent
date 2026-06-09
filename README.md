@@ -38,7 +38,13 @@ python3 src/main.py
 ```json
 {
   "ebay_app_id": "",
-  "ebay_environment": "sandbox"
+  "ebay_environment": "sandbox",
+  "search_keywords": [
+    "KTM",
+    "KTM PowerWear",
+    "Dainese",
+    "Alpinestars"
+  ]
 }
 ```
 
@@ -52,4 +58,16 @@ Client SecretはGitHubへ保存しないため、実行時に環境変数 `EBAY_
 EBAY_CLIENT_SECRET="your_client_secret" python3 src/ebay_fetcher.py
 ```
 
-`src/ebay_fetcher.py` はeBay Browse APIで `motorcycle` を検索し、最大50件を `data/products.csv` に保存します。
+`src/ebay_fetcher.py` は `search_keywords` の各キーワードでeBay Browse APIを検索し、キーワードごとに最大200件を取得します。
+
+取得結果は `data/products_キーワード.csv` と、全キーワードをまとめた `data/products.csv` に保存します。
+
+## キーワード別分析
+
+以下のコマンドで、`data/products.csv` をキーワード別に分析します。
+
+```bash
+python3 src/analysis.py
+```
+
+分析結果は `reports/キーワード_report_summary.csv` と `reports/キーワード_top_sellers.csv` に保存します。

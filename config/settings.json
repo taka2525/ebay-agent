@@ -2,5 +2,11 @@
   "min_profit_rate": 70,
   "min_profit": 1000,
   "ebay_app_id": "TakashiY-profitse-PRD-51b076cb5-ab6a02fa",
-  "ebay_environment": "production"
+  "ebay_environment": "production",
+  "search_keywords": [
+    "KTM",
+    "KTM PowerWear",
+    "Dainese",
+    "Alpinestars"
+  ]
 }

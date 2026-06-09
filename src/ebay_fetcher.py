@@ -2,11 +2,11 @@ import base64
 import csv
 import json
 import os
+import re
 from pathlib import Path
 from urllib import parse, request
 
 
-SEARCH_KEYWORD = "motorcycle"
 SEARCH_LIMIT = 200
 
 
@@ -19,6 +19,15 @@ def get_api_base_url(environment):
     if environment == "production":
         return "https://api.ebay.com"
     return "https://api.sandbox.ebay.com"
+
+
+def get_search_keywords(settings):
+    return settings.get("search_keywords", ["motorcycle"])
+
+
+def slugify_keyword(keyword):
+    slug = re.sub(r"[^A-Za-z0-9]+", "_", keyword).strip("_")
+    return slug or "keyword"
 
 
 def check_ebay_api_settings(settings):
@@ -67,10 +76,9 @@ def get_access_token(settings):
     return token_response["access_token"]
 
 
-def fetch_ebay_items(settings):
+def fetch_ebay_items(settings, access_token, keyword):
     ebay_environment = settings["ebay_environment"]
-    access_token = get_access_token(settings)
-    query = parse.urlencode({"q": SEARCH_KEYWORD, "limit": SEARCH_LIMIT})
+    query = parse.urlencode({"q": keyword, "limit": SEARCH_LIMIT})
     search_url = (
         f"{get_api_base_url(ebay_environment)}"
         f"/buy/browse/v1/item_summary/search?{query}"
@@ -123,6 +131,7 @@ def save_products_csv(items, csv_path):
             "itemLocation",
             "categoryPath",
             "buyingOptions",
+            "searchKeyword",
         ]
         writer = csv.DictWriter(file, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
@@ -139,22 +148,41 @@ def save_products_csv(items, csv_path):
                     "itemLocation": format_item_location(item.get("itemLocation", {})),
                     "categoryPath": format_category_path(item.get("categories", [])),
                     "buyingOptions": ",".join(item.get("buyingOptions", [])),
+                    "searchKeyword": item.get("searchKeyword", ""),
                 }
             )
 
 
+def fetch_all_keywords(settings, project_root):
+    csv_path = project_root / "data" / "products.csv"
+    all_items = []
+    access_token = get_access_token(settings)
+
+    for keyword in get_search_keywords(settings):
+        items = fetch_ebay_items(settings, access_token, keyword)
+        for item in items:
+            item["searchKeyword"] = keyword
+
+        keyword_csv_path = (
+            project_root / "data" / f"products_{slugify_keyword(keyword)}.csv"
+        )
+        save_products_csv(items, keyword_csv_path)
+        all_items.extend(items)
+        print(f"{keyword}: {len(items)}件の商品データを保存しました: {keyword_csv_path}")
+
+    save_products_csv(all_items, csv_path)
+    print(f"全キーワード合計 {len(all_items)}件の商品データを保存しました: {csv_path}")
+
+
 def main():
     project_root = Path(__file__).resolve().parent.parent
-    csv_path = project_root / "data" / "products.csv"
     settings_path = project_root / "config" / "settings.json"
     settings = load_settings(settings_path)
 
     if not check_ebay_api_settings(settings):
         return
 
-    items = fetch_ebay_items(settings)
-    save_products_csv(items, csv_path)
-    print(f"{len(items)}件の商品データを保存しました: {csv_path}")
+    fetch_all_keywords(settings, project_root)
 
 
 if __name__ == "__main__":

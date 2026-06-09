@@ -2,7 +2,7 @@ import csv
 import json
 from pathlib import Path
 
-from ebay_fetcher import check_ebay_api_settings, fetch_ebay_items, save_products_csv
+from ebay_fetcher import check_ebay_api_settings, fetch_all_keywords
 
 
 def load_settings(settings_path):
@@ -112,8 +112,7 @@ def main():
     if not csv_path.exists():
         if not check_ebay_api_settings(settings):
             return
-        items = fetch_ebay_items(settings)
-        save_products_csv(items, csv_path)
+        fetch_all_keywords(settings, project_root)
 
     products = load_products(csv_path)
     if not products:

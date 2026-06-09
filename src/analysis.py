@@ -1,11 +1,17 @@
 import csv
 from collections import Counter
 from pathlib import Path
+import re
 
 
 def load_products(csv_path):
     with csv_path.open("r", encoding="utf-8", newline="") as file:
         return list(csv.DictReader(file))
+
+
+def slugify_keyword(keyword):
+    slug = re.sub(r"[^A-Za-z0-9]+", "_", keyword).strip("_")
+    return slug or "keyword"
 
 
 def parse_price(value):
@@ -84,18 +90,33 @@ def write_top_sellers(products, top_sellers_path):
             writer.writerow([seller, count])
 
 
+def group_products_by_keyword(products):
+    grouped_products = {}
+    for product in products:
+        keyword = product.get("searchKeyword") or "all"
+        grouped_products.setdefault(keyword, []).append(product)
+    return grouped_products
+
+
 def main():
     project_root = Path(__file__).resolve().parent.parent
     products_path = project_root / "data" / "products.csv"
-    report_summary_path = project_root / "reports" / "report_summary.csv"
-    top_sellers_path = project_root / "reports" / "top_sellers.csv"
 
     products = load_products(products_path)
-    write_report_summary(products, report_summary_path)
-    write_top_sellers(products, top_sellers_path)
+    grouped_products = group_products_by_keyword(products)
 
-    print(f"分析サマリーを保存しました: {report_summary_path}")
-    print(f"上位セラー一覧を保存しました: {top_sellers_path}")
+    for keyword, keyword_products in grouped_products.items():
+        keyword_slug = slugify_keyword(keyword)
+        report_summary_path = (
+            project_root / "reports" / f"{keyword_slug}_report_summary.csv"
+        )
+        top_sellers_path = project_root / "reports" / f"{keyword_slug}_top_sellers.csv"
+
+        write_report_summary(keyword_products, report_summary_path)
+        write_top_sellers(keyword_products, top_sellers_path)
+
+        print(f"{keyword}: 分析サマリーを保存しました: {report_summary_path}")
+        print(f"{keyword}: 上位セラー一覧を保存しました: {top_sellers_path}")
 
 
 if __name__ == "__main__":
