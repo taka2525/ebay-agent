@@ -20,3 +20,13 @@ Pythonで開発します。
 ```bash
 python3 src/main.py
 ```
+
+## レポート出力
+
+`src/main.py` を実行すると、条件に合った商品一覧を `reports/report.csv` に保存します。
+
+出力列は以下です。
+
+```text
+商品名,仕入価格,販売価格,利益,利益率
+```

@@ -74,10 +74,30 @@ def print_products(products):
     print(f"合計利益: {total_profit}")
 
 
+def save_report(products, report_path):
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = ["商品名", "仕入価格", "販売価格", "利益", "利益率"]
+
+    with report_path.open("w", encoding="utf-8", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames, lineterminator="\n")
+        writer.writeheader()
+        for product in products:
+            writer.writerow(
+                {
+                    "商品名": product["商品名"],
+                    "仕入価格": product["仕入価格"],
+                    "販売価格": product["販売価格"],
+                    "利益": product["利益"],
+                    "利益率": f"{product['利益率']:.1f}",
+                }
+            )
+
+
 def main():
     project_root = Path(__file__).resolve().parent.parent
     csv_path = project_root / "data" / "products.csv"
     settings_path = project_root / "config" / "settings.json"
+    report_path = project_root / "reports" / "report.csv"
 
     if not csv_path.exists():
         generate_products_csv(csv_path)
@@ -95,6 +115,7 @@ def main():
         key=lambda product: product["利益率"],
         reverse=True,
     )
+    save_report(sorted_products, report_path)
     print_products(sorted_products)
 
 
