@@ -187,19 +187,33 @@ def write_market_report(products, report_path, search_keywords):
 
 def write_item_type_report(products, report_path):
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    item_type_counts = Counter()
+    item_type_prices = {item_type: [] for item_type in ITEM_TYPE_PATTERNS}
 
     for product in products:
         title = product.get("title", "")
+        price = parse_price(product.get("price", ""))
         for item_type, pattern in ITEM_TYPE_PATTERNS.items():
             if re.search(pattern, title, re.IGNORECASE):
-                item_type_counts[item_type] += 1
+                item_type_prices[item_type].append(price)
 
     with report_path.open("w", encoding="utf-8") as file:
         file.write("# Item Type Report\n\n")
         file.write(f"分析対象件数: {len(products)}件\n\n")
         for item_type in ITEM_TYPE_PATTERNS:
-            file.write(f"- {item_type}: {item_type_counts[item_type]}件\n")
+            prices = [
+                price
+                for price in item_type_prices[item_type]
+                if price is not None
+            ]
+            average_price = sum(prices) / len(prices) if prices else 0
+            max_price = max(prices) if prices else 0
+            min_price = min(prices) if prices else 0
+
+            file.write(f"## {item_type}\n\n")
+            file.write(f"件数: {len(item_type_prices[item_type])}\n")
+            file.write(f"平均価格: {average_price:.2f}ドル\n")
+            file.write(f"最高価格: {max_price:.2f}ドル\n")
+            file.write(f"最低価格: {min_price:.2f}ドル\n\n")
 
 
 def group_products_by_keyword(products):
