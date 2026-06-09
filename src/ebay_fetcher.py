@@ -7,7 +7,7 @@ from urllib import parse, request
 
 
 SEARCH_KEYWORD = "motorcycle"
-SEARCH_LIMIT = 50
+SEARCH_LIMIT = 200
 
 
 def load_settings(settings_path):
@@ -90,20 +90,55 @@ def fetch_ebay_items(settings):
     return search_response.get("itemSummaries", [])
 
 
+def format_item_location(item_location):
+    if not item_location:
+        return ""
+
+    location_parts = [
+        item_location.get("city", ""),
+        item_location.get("stateOrProvince", ""),
+        item_location.get("postalCode", ""),
+        item_location.get("country", ""),
+    ]
+    return ", ".join(part for part in location_parts if part)
+
+
+def format_category_path(categories):
+    if not categories:
+        return ""
+
+    return " > ".join(category.get("categoryName", "") for category in categories)
+
+
 def save_products_csv(items, csv_path):
     csv_path.parent.mkdir(parents=True, exist_ok=True)
 
     with csv_path.open("w", encoding="utf-8", newline="") as file:
-        fieldnames = ["title", "price", "itemWebUrl"]
+        fieldnames = [
+            "title",
+            "price",
+            "itemWebUrl",
+            "sellerUsername",
+            "condition",
+            "itemLocation",
+            "categoryPath",
+            "buyingOptions",
+        ]
         writer = csv.DictWriter(file, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         for item in items:
             price = item.get("price", {})
+            seller = item.get("seller", {})
             writer.writerow(
                 {
                     "title": item.get("title", ""),
                     "price": price.get("value", ""),
                     "itemWebUrl": item.get("itemWebUrl", ""),
+                    "sellerUsername": seller.get("username", ""),
+                    "condition": item.get("condition", ""),
+                    "itemLocation": format_item_location(item.get("itemLocation", {})),
+                    "categoryPath": format_category_path(item.get("categories", [])),
+                    "buyingOptions": ",".join(item.get("buyingOptions", [])),
                 }
             )
 
