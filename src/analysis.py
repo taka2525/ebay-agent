@@ -9,6 +9,13 @@ def load_products(csv_path):
         return list(csv.DictReader(file))
 
 
+def load_settings(settings_path):
+    import json
+
+    with settings_path.open("r", encoding="utf-8") as file:
+        return json.load(file)
+
+
 def slugify_keyword(keyword):
     slug = re.sub(r"[^A-Za-z0-9]+", "_", keyword).strip("_")
     return slug or "keyword"
@@ -30,6 +37,31 @@ def get_country(item_location):
     if not item_location:
         return "不明"
     return item_location.split(",")[-1].strip() or "不明"
+
+
+def get_brand(product, search_keywords):
+    search_keyword = product.get("searchKeyword", "")
+    if search_keyword:
+        return search_keyword
+
+    title = product.get("title", "").lower()
+    for keyword in search_keywords:
+        if keyword.lower() in title:
+            return keyword
+
+    return "不明"
+
+
+def get_price_band(price):
+    if price is None:
+        return "価格不明"
+    if price < 20:
+        return "0-20ドル"
+    if price < 50:
+        return "20-50ドル"
+    if price < 100:
+        return "50-100ドル"
+    return "100ドル以上"
 
 
 def is_new_condition(condition):
@@ -90,6 +122,57 @@ def write_top_sellers(products, top_sellers_path):
             writer.writerow([seller, count])
 
 
+def write_market_report(products, report_path, search_keywords):
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+
+    category_counts = Counter(get_category(row["categoryPath"]) for row in products)
+    brand_counts = Counter(get_brand(row, search_keywords) for row in products)
+    price_band_counts = Counter(
+        get_price_band(parse_price(row["price"]))
+        for row in products
+    )
+    seller_count = len(
+        {
+            row["sellerUsername"]
+            for row in products
+            if row.get("sellerUsername")
+        }
+    )
+    title_counts = Counter(row["title"] for row in products if row.get("title"))
+    low_listing_titles = [
+        (title, count)
+        for title, count in title_counts.most_common()
+        if count <= 3
+    ]
+
+    with report_path.open("w", encoding="utf-8") as file:
+        file.write("# Market Report\n\n")
+        file.write(f"分析対象件数: {len(products)}件\n\n")
+
+        file.write("## 1. カテゴリ別件数\n\n")
+        for category, count in category_counts.most_common():
+            file.write(f"- {category}: {count}件\n")
+
+        file.write("\n## 2. ブランド別件数\n\n")
+        for brand, count in brand_counts.most_common():
+            file.write(f"- {brand}: {count}件\n")
+
+        file.write("\n## 3. 価格帯別件数\n\n")
+        for price_band in ["0-20ドル", "20-50ドル", "50-100ドル", "100ドル以上", "価格不明"]:
+            file.write(f"- {price_band}: {price_band_counts[price_band]}件\n")
+
+        file.write("\n## 4. 出品者数\n\n")
+        file.write(f"{seller_count}セラー\n")
+
+        file.write("\n## 5. 出品数が3件以下の商品タイトル一覧\n\n")
+        for title, count in low_listing_titles:
+            file.write(f"- {title}: {count}件\n")
+
+        file.write("\n## 6. 商品タイトル出現回数ランキング\n\n")
+        for rank, (title, count) in enumerate(title_counts.most_common(), start=1):
+            file.write(f"{rank}. {title}: {count}件\n")
+
+
 def group_products_by_keyword(products):
     grouped_products = {}
     for product in products:
@@ -101,9 +184,14 @@ def group_products_by_keyword(products):
 def main():
     project_root = Path(__file__).resolve().parent.parent
     products_path = project_root / "data" / "products.csv"
+    settings_path = project_root / "config" / "settings.json"
+    market_report_path = project_root / "reports" / "market_report.txt"
 
     products = load_products(products_path)
+    settings = load_settings(settings_path)
+    search_keywords = settings.get("search_keywords", [])
     grouped_products = group_products_by_keyword(products)
+    write_market_report(products, market_report_path, search_keywords)
 
     for keyword, keyword_products in grouped_products.items():
         keyword_slug = slugify_keyword(keyword)
@@ -117,6 +205,8 @@ def main():
 
         print(f"{keyword}: 分析サマリーを保存しました: {report_summary_path}")
         print(f"{keyword}: 上位セラー一覧を保存しました: {top_sellers_path}")
+
+    print(f"市場レポートを保存しました: {market_report_path}")
 
 
 if __name__ == "__main__":
