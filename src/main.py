@@ -12,6 +12,7 @@ def load_products(csv_path):
             purchase_price = int(row["仕入価格"])
             selling_price = int(row["販売価格"])
             profit = selling_price - purchase_price
+            profit_rate = profit / purchase_price * 100
 
             products.append(
                 {
@@ -19,6 +20,7 @@ def load_products(csv_path):
                     "仕入価格": purchase_price,
                     "販売価格": selling_price,
                     "利益": profit,
+                    "利益率": f"{profit_rate:.1f}",
                 }
             )
 
@@ -26,7 +28,7 @@ def load_products(csv_path):
 
 
 def print_products(products):
-    headers = ["商品名", "仕入価格", "販売価格", "利益"]
+    headers = ["商品名", "仕入価格", "販売価格", "利益", "利益率"]
     rows = [[str(product[header]) for header in headers] for product in products]
     widths = [
         max(len(header), *(len(row[index]) for row in rows))
