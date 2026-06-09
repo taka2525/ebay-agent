@@ -12,3 +12,11 @@ eBayで売れているが出品数の少ない商品を抽出する。
 
 Gitで管理します。
 Pythonで開発します。
+
+## 実行方法
+
+以下のコマンドで、`data/products.csv` を読み込み、利益計算の結果を表示します。
+
+```bash
+python3 src/main.py
+```
