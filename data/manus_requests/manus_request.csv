@@ -1,0 +1,5 @@
+request_id,title,search_keyword,target_sites,ebay_price_jpy,ebay_url
+001,KTM Jacket,KTM ジャケット,mercari;yahoo,25000,https://example.com/ebay/ktm-jacket
+002,Dainese Gloves,ダイネーゼ グローブ,mercari;yahoo,18000,https://example.com/ebay/dainese-gloves
+003,Alpinestars Boots,Alpinestars ブーツ,mercari;yahoo,42000,https://example.com/ebay/alpinestars-boots
+004,KTM PowerWear Hoodie,KTM PowerWear パーカー,mercari;yahoo,22000,https://example.com/ebay/ktm-powerwear-hoodie

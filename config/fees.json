@@ -1,0 +1,9 @@
+{
+  "ebay_fee_rate": 0.13,
+  "international_shipping_jpy": 3000,
+  "packing_cost_jpy": 300,
+  "default_domestic_shipping_jpy": 800,
+  "exchange_rate": 155,
+  "minimum_profit_jpy": 1000,
+  "minimum_profit_rate": 10
+}

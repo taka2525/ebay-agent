@@ -1,0 +1,9 @@
+rank,title,site,domestic_price_jpy,domestic_shipping_jpy,ebay_price_jpy,profit_jpy,profit_rate,ebay_url,domestic_url
+1,Alpinestars Boots,mercari,21000,1500,42000,10740,51.1,https://example.com/ebay/alpinestars-boots,https://example.com/mercari/alpinestars-boots
+2,KTM Jacket,mercari,7800,850,25000,9800,125.6,https://example.com/ebay/ktm-jacket,https://example.com/mercari/ktm-jacket
+3,KTM Jacket,yahoo,9200,1200,25000,8050,87.5,https://example.com/ebay/ktm-jacket,https://example.com/yahoo/ktm-jacket
+4,Alpinestars Boots,yahoo,23800,1800,42000,7640,32.1,https://example.com/ebay/alpinestars-boots,https://example.com/yahoo/alpinestars-boots
+5,KTM PowerWear Hoodie,mercari,8600,850,22000,6390,74.3,https://example.com/ebay/ktm-powerwear-hoodie,https://example.com/mercari/ktm-hoodie
+6,Dainese Gloves,mercari,6200,700,18000,5460,88.1,https://example.com/ebay/dainese-gloves,https://example.com/mercari/dainese-gloves
+7,KTM PowerWear Hoodie,yahoo,9800,1000,22000,5040,51.4,https://example.com/ebay/ktm-powerwear-hoodie,https://example.com/yahoo/ktm-hoodie
+8,Dainese Gloves,yahoo,7000,1000,18000,4360,62.3,https://example.com/ebay/dainese-gloves,https://example.com/yahoo/dainese-gloves

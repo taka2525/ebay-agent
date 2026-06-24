@@ -1,0 +1,9 @@
+request_id,site,price_jpy,shipping_jpy,url
+001,mercari,7800,850,https://example.com/mercari/ktm-jacket
+001,yahoo,9200,1200,https://example.com/yahoo/ktm-jacket
+002,mercari,6200,700,https://example.com/mercari/dainese-gloves
+002,yahoo,7000,1000,https://example.com/yahoo/dainese-gloves
+003,mercari,21000,1500,https://example.com/mercari/alpinestars-boots
+003,yahoo,23800,1800,https://example.com/yahoo/alpinestars-boots
+004,mercari,8600,850,https://example.com/mercari/ktm-hoodie
+004,yahoo,9800,1000,https://example.com/yahoo/ktm-hoodie

@@ -71,3 +71,105 @@ python3 src/analysis.py
 ```
 
 分析結果は `reports/キーワード_report_summary.csv` と `reports/キーワード_top_sellers.csv` に保存します。
+
+## Manus連携MVP
+
+初号機では、eBay候補CSVをもとにManusへ国内調査を依頼するCSVを作成し、Manusの調査結果CSVを読み込んで利益計算とレポート出力を行います。
+
+このMVPでは完全自動化は行わず、CSVベースで以下の流れを確認します。
+
+```text
+eBay候補CSV
+↓
+Manus依頼CSV
+↓
+Manus結果CSV
+↓
+利益計算
+↓
+利益ランキングCSV
+↓
+HTMLレポート
+```
+
+### 入力ファイル
+
+eBay候補CSV:
+
+```text
+data/ebay_raw/ebay_candidates.csv
+```
+
+形式:
+
+```text
+title,ebay_price_jpy,ebay_url
+```
+
+Manus結果CSV:
+
+```text
+data/manus_results/manus_results.csv
+```
+
+形式:
+
+```text
+request_id,site,price_jpy,shipping_jpy,url
+```
+
+### 設定ファイル
+
+利益計算の設定は以下で管理します。
+
+```text
+config/fees.json
+```
+
+管理項目:
+
+```text
+ebay_fee_rate
+international_shipping_jpy
+packing_cost_jpy
+default_domestic_shipping_jpy
+exchange_rate
+minimum_profit_jpy
+minimum_profit_rate
+```
+
+### 出力ファイル
+
+Manus依頼CSV:
+
+```text
+data/manus_requests/manus_request.csv
+```
+
+利益ランキングCSV:
+
+```text
+data/processed/profit_ranking.csv
+```
+
+HTMLレポート:
+
+```text
+reports/daily_report.html
+```
+
+### 実行方法
+
+ダミーデータでMVPの一連の処理を実行します。
+
+```bash
+python3 src/mvp_pipeline.py
+```
+
+個別に実行する場合は以下です。
+
+```bash
+python3 src/manus_request.py
+python3 src/profit_calculator.py
+python3 src/report_generator.py
+```
