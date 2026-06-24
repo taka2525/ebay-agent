@@ -62,6 +62,29 @@ EBAY_CLIENT_SECRET="your_client_secret" python3 src/ebay_fetcher.py
 
 取得結果は `data/products_キーワード.csv` と、全キーワードをまとめた `data/products.csv` に保存します。
 
+### eBay取得CSVからManus依頼CSVを作成
+
+`src/ebay_fetcher.py` が作成した `data/products.csv` を、Manus調査に渡せる形式へ変換します。
+
+```bash
+python3 src/ebay_to_manus.py
+```
+
+出力ファイル:
+
+```text
+data/manus_requests/ebay_candidates_for_manus.csv
+data/manus_requests/manus_request_from_ebay.csv
+```
+
+`ebay_candidates_for_manus.csv` の形式:
+
+```text
+title,ebay_price_jpy,ebay_url
+```
+
+`manus_request_from_ebay.csv` は、Manusへ国内調査を依頼するためのCSVです。
+
 ## キーワード別分析
 
 以下のコマンドで、`data/products.csv` をキーワード別に分析します。
